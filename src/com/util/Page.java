@@ -1,22 +1,22 @@
-package util;
+package com.util;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /*
- * 鍒嗛〉瀹炰綋绫�
+ * 分页实体类
  */
 public class Page {
 
-	//姣忛〉鏄剧ず鐨勬潯鏁�
+	//每页显示的条数
 	private int pageNumber=5;
-	//褰撳墠椤�
+	//当前页
 	private int curPage;
-	//鎬绘潯鏁�
+	//总条数
 	private int rows;
-	//鎬婚〉鏁�
+	//总页数
 	private int totalPage;
-	//瑕佺幇瀹炵殑list
+	//要现实的list
 	private List list=new ArrayList();
 	public int getPageNumber() {
 		return pageNumber;

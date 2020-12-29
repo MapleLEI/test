@@ -1,4 +1,4 @@
-package util;
+package com.util;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -20,18 +20,18 @@ import org.apache.log4j.Logger;
 
 
 /**
- * 鏁版嵁搴撴搷浣滆緟鍔╃被
+ * 数据库操作辅助类
  * @version 3.0
  * @author yaohc
  */
 public class DBUtil {
 
 	private static Logger logger = Logger.getLogger("DBUtil");
-	// 鍒涘缓涓�涓笌浜嬪姟鐩稿叧鐨勫眬閮ㄧ嚎绋嬪彉閲�
+	// 创建一个与事务相关的局部线程变量
 	private static ThreadLocal<Connection> tl = new ThreadLocal<Connection>();
 	//private static Connection conn;
 	/**
-	 * 璇ヨ鍙ュ繀椤绘槸 SQL INSERT銆乁PDATE 銆丏ELETE 璇彞
+	 * 该语句必须是 SQL INSERT、UPDATE 、DELETE 语句
 	 * 
 	 * @param sql 
 	 * @return
@@ -42,10 +42,10 @@ public class DBUtil {
 	}
 	
 	/**
-	 * 璇ヨ鍙ュ繀椤绘槸 SQL INSERT銆乁PDATE 銆丏ELETE 璇彞
+	 * 该语句必须是 SQL INSERT、UPDATE 、DELETE 语句
 	 *      insert into table values(?,?,?,?)
 	 * @param sql
-	 * @param paramList锛氬弬鏁帮紝涓嶴QL璇彞涓殑鍗犱綅绗︿竴
+	 * @param paramList：参数，与SQL语句中的占位符一
 	 * @return
 	 * @throws Exception
 	 */
@@ -55,14 +55,14 @@ public class DBUtil {
 		}
 
 		Connection conn = null;
-		//鍒涘缓鎵ц瀵硅薄
+		//创建执行对象
 		PreparedStatement pstmt = null;
 		int result = 0;
 		try {
 			conn = getConnection();
-			// 棰勭紪璇憇ql璇彞
+			// 预编译sql语句
 			pstmt = DBUtil.getPreparedStatement(conn, sql);
-			// 濉厖鍗犱綅绗�(缁橲QL璇彞浼犻�掑弬鏁�)
+			// 填充占位符(给SQL语句传递参数)
 			setPreparedStatementParam(pstmt, paramList);
 			if (pstmt == null) {
 				return -1;
@@ -79,10 +79,10 @@ public class DBUtil {
 		return result;
 	}
 	/**
-	 * 浜嬬墿澶勭悊绫�
+	 * 事物处理类
 	 * @param connection
 	 * @param sql
-	 * @param paramList锛氬弬鏁帮紝涓嶴QL璇彞涓殑鍗犱綅绗︿竴
+	 * @param paramList：参数，与SQL语句中的占位符一
 	 * @return
 	 * @throws Exception
 	 */
@@ -111,7 +111,7 @@ public class DBUtil {
 	}
 	
 	/**
-	 * 鑾峰彇瀹炰綋绫诲瀷鐨勬柟娉曪紝type涓哄疄浣撶被绫诲瀷銆�
+	 * 获取实体类型的方法，type为实体类类型。
 	 * @param type
 	 * @param sql
 	 * @param paramList
@@ -119,11 +119,11 @@ public class DBUtil {
 	 * @throws Exception
 	 */
 	public Object getObject(Class<?> type, String sql,Object[] paramList)  throws Exception {
-		// 鑾峰彇javaBean灞炴��  
+		// 获取javaBean属性  
 		BeanInfo beanInfo = Introspector.getBeanInfo(type);
-		// 鍒涘缓 JavaBean 瀵硅薄  
+		// 创建 JavaBean 对象  
 		Object obj = type.newInstance();
-		//鑾峰彇Javabean涓殑鎵�鏈夊睘鎬�,骞剁粰 JavaBean 瀵硅薄鐨勫睘鎬ц祴鍊�   
+		//获取Javabean中的所有属性,并给 JavaBean 对象的属性赋值   
 		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		Map	map = getObject(sql, paramList);
 		if(map != null){
@@ -137,10 +137,10 @@ public class DBUtil {
 					try{
 						descriptor.getWriteMethod().invoke(obj, args);
 					}catch(Exception e){
-						logger.info("妫�娴嬩竴涓婽able鍒楋紝鍜屽疄浣撶被灞炴�э細" + propertyName + ""
-								+ "鏄惁涓�鑷达紝骞朵笖鏄惁鏄�" + value.getClass() + "绫诲瀷");
-						throw new Exception("妫�娴嬩竴涓婽able鍒楋紝鍜屽疄浣撶被灞炴�э細" + propertyName + ""
-								+ "鏄惁涓�鑷达紝骞朵笖鏄惁鏄�" + value.getClass() + "绫诲瀷");
+						logger.info("检测一下Table列，和实体类属性：" + propertyName + ""
+								+ "是否一致，并且是否是" + value.getClass() + "类型");
+						throw new Exception("检测一下Table列，和实体类属性：" + propertyName + ""
+								+ "是否一致，并且是否是" + value.getClass() + "类型");
 					}
 				}
 			}
@@ -170,10 +170,10 @@ public class DBUtil {
 					try{
 						descriptor.getWriteMethod().invoke(obj, args);
 					}catch(Exception e){
-						logger.info("妫�娴嬩竴涓婽able鍒楋紝鍜屽疄浣撶被灞炴�э細" + propertyName + ""
-								+ "鏄惁涓�鑷达紝骞朵笖鏄惁鏄�" + value.getClass() + "绫诲瀷");
-						throw new Exception("妫�娴嬩竴涓婽able鍒楋紝鍜屽疄浣撶被灞炴�э細" + propertyName + ""
-								+ "鏄惁涓�鑷达紝骞朵笖鏄惁鏄�" + value.getClass() + "绫诲瀷");					}
+						logger.info("检测一下Table列，和实体类属性：" + propertyName + ""
+								+ "是否一致，并且是否是" + value.getClass() + "类型");
+						throw new Exception("检测一下Table列，和实体类属性：" + propertyName + ""
+								+ "是否一致，并且是否是" + value.getClass() + "类型");					}
 				}
 			}
 			beanList.add(obj);
@@ -184,9 +184,9 @@ public class DBUtil {
 	
 	
 	/**
-	 * 灏嗘煡璇㈡暟鎹簱鑾峰緱鐨勭粨鏋滈泦杞崲涓篗ap瀵硅薄
+	 * 将查询数据库获得的结果集转换为Map对象
 	 * 
-	 * @param sql锛氭煡璇�
+	 * @param sql：查询
 	 * @return
 	 */
 	public List<Map<String, Object>> getQueryList(String sql) throws Exception {
@@ -194,10 +194,10 @@ public class DBUtil {
 	}
 
 	/**
-	 * 灏嗘煡璇㈡暟鎹簱鑾峰緱鐨勭粨鏋滈泦杞崲涓篗ap瀵硅薄
+	 * 将查询数据库获得的结果集转换为Map对象
 	 * 
-	 * @param sql锛氭煡璇�
-	 * @param paramList锛氬弬鏁�
+	 * @param sql：查询
+	 * @param paramList：参数
 	 * @return
 	 */
 	public List<Map<String, Object>> getQueryList(String sql, Object[] paramList) throws Exception {
@@ -232,17 +232,17 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鍒嗛〉鏌ヨ
+	 * 分页查询
 	 * @param sql 
-	 * @param params 鏌ヨ鏉′欢鍙傛暟
-	 * @param page  鍒嗛〉淇℃伅
+	 * @param params 查询条件参数
+	 * @param page  分页信息
 	 * @return
 	 */
 	public Page getQueryPage(Class<?> type, String sql,Object[] params,Page page){
-		int totalPages = 0;	//椤垫暟
-		Long rows = 0l;//鏁版嵁璁板綍鏁�
+		int totalPages = 0;	//页数
+		Long rows = 0l;//数据记录数
 		
-		//鍒嗛〉宸ュ叿绫�
+		//分页工具类
 		List<Class<?>> list = null;
 		Map countMap = null;
 		try {
@@ -253,7 +253,7 @@ public class DBUtil {
 			countMap = this.getObject(" "
 					+ "select count(*) c from ("+ sql +") as t ", params);
 			rows =  (Long)countMap.get("c");
-			//姹備綑鏁�
+			//求余数
 			if(rows % page.getPageNumber() ==0){
 				totalPages = rows.intValue() / page.getPageNumber();
 			}else{
@@ -270,8 +270,8 @@ public class DBUtil {
 	}
 	
 	/**
-	 * 灏嗘煡璇㈡暟鎹簱鑾峰緱鐨勭粨鏋滈泦杞崲涓篗ap瀵硅薄
-	 * @param sql锛氭煡璇�
+	 * 将查询数据库获得的结果集转换为Map对象
+	 * @param sql：查询
 	 * @return
 	 */
 	public Map<String, Object> getObject(String sql) throws Exception {
@@ -279,10 +279,10 @@ public class DBUtil {
 	}
 	
 	/**
-	 * 灏嗘煡璇㈡暟鎹簱鑾峰緱鐨勭粨鏋滈泦杞崲涓篗ap瀵硅薄
+	 * 将查询数据库获得的结果集转换为Map对象
 	 * 
-	 * @param sql锛氭煡璇�
-	 * @param paramList锛氬弬鏁�
+	 * @param sql：查询
+	 * @param paramList：参数
 	 * @return
 	 */
 	public Map<String, Object> getObject(String sql, Object[] paramList) throws Exception {
@@ -302,13 +302,13 @@ public class DBUtil {
 			if (pstmt == null) {
 				return null;
 			}
-			//閽堝鏌ヨ鐨勬墽琛屾搷浣�
+			//针对查询的执行操作
 			rs = getResultSet(pstmt);
 			List list = getQueryList(rs);
 			if(list.isEmpty()){
 				return null;
 			}
-			//鑾峰彇list涓涓�涓厓绱�
+			//获取list中第一个元素
 			map = (HashMap) list.get(0);
 		} catch (RuntimeException e) {
 			logger.info(e.getMessage());
@@ -361,13 +361,13 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鑾峰緱鏁版嵁搴撴煡璇㈢粨鏋滈泦
+	 * 获得数据库查询结果集
 	 * 
 	 * @param pstmt
 	 * @return
 	 * @throws Exception
 	 */
-	//閽堝鏌ヨ鐨勬墽琛屾搷浣�
+	//针对查询的执行操作
 	private ResultSet getResultSet(PreparedStatement pstmt) throws Exception {
 		if (pstmt == null) {
 			return null;
@@ -381,21 +381,21 @@ public class DBUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	//鎵撳嵃缁撴灉闆�
+	//打印结果集
 	private List<Map<String, Object>> getQueryList(ResultSet rs) throws Exception {
 		if (rs == null) {
 			return null;
 		}
-		//寰楀埌缁撴灉闆嗙殑缁撴瀯锛屾瘮濡傚瓧娈垫暟銆佸瓧娈靛悕绛�
+		//得到结果集的结构，比如字段数、字段名等
 		ResultSetMetaData rsMetaData = rs.getMetaData();
-		//寰楀埌缁撴灉闆嗙殑鍒楁暟
+		//得到结果集的列数
 		int columnCount = rsMetaData.getColumnCount();
 		List<Map<String, Object>> dataList = new ArrayList<Map<String, Object>>();
 		while (rs.next()) {
-			//鑾峰彇缁撴灉闆嗙殑姣忎竴鍒楃殑鍊硷紝缁撳悎3寰楀埌涓�涓狹ap锛岄敭鏄垪鍚嶏紝鍊肩殑鍊�
+			//获取结果集的每一列的值，结合3得到一个Map，键是列名，值的值
 			Map<String, Object> dataMap = new HashMap<String, Object>();
 			for (int i = 0; i < columnCount; i++) {
-				//鎶婃寚瀹氬垪鐨勫悕绉板拰鍒楃殑鍊兼斁鍒癿ap閲�
+				//把指定列的名称和列的值放到map里
 				dataMap.put(rsMetaData.getColumnLabel(i + 1), rs.getObject(i + 1));
 			}
 			dataList.add(dataMap);
@@ -404,7 +404,7 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鍏抽棴鏁版嵁搴�
+	 * 关闭数据库
 	 * 
 	 * @param conn
 	 */
@@ -420,7 +420,7 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鍏抽棴
+	 * 关闭
 	 * 
 	 * @param stmt
 	 */
@@ -436,7 +436,7 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鍏抽棴
+	 * 关闭
 	 * 
 	 * @param rs
 	 */
@@ -452,10 +452,10 @@ public class DBUtil {
 	}
 
 	/**
-	 * 鍙互閫夋嫨涓変釜涓嶅悓鐨勬暟鎹簱杩炴帴
+	 * 可以选择三个不同的数据库连接
 	 * 
 	 * @param JDBC
-	 *            ,JNDI锛堜緷璧杦eb瀹瑰櫒 DBCP
+	 *            ,JNDI（依赖web容器 DBCP
 	 * @return
 	 * @throws Exception
 	 */
@@ -466,54 +466,54 @@ public class DBUtil {
 		}
 		return conn;
 	}
-	/***********浜嬪姟澶勭悊鏂规硶************/
+	/***********事务处理方法************/
 	/**
-	 * 寮�鍚簨鍔�
+	 * 开启事务
 	 */
 	public static void beginTranscation() throws Exception{
 		Connection conn = tl.get();
 		if(conn != null){
-			logger.info("浜嬪姟宸茬粡寮�濮嬶紒");
-			throw new SQLException("浜嬪姟宸茬粡寮�濮嬶紒");
+			logger.info("事务已经开始！");
+			throw new SQLException("事务已经开始！");
 		}
 		conn = DBDataSource.getConnectionC3P0();
 		conn.setAutoCommit(false);
 		tl.set(conn);
 	}
 	/**
-	 * 缁撴潫浜嬪姟
+	 * 结束事务
 	 * @throws SQLException
 	 */
 	public static void endTranscation() throws SQLException{
 		Connection conn = tl.get();
 		if(conn == null){
-			logger.info("褰撳墠娌℃湁浜嬪姟锛�");
-			throw new SQLException("褰撳墠娌℃湁浜嬪姟锛�");
+			logger.info("当前没有事务！");
+			throw new SQLException("当前没有事务！");
 		}
 		conn.commit();
 	}
 	/**
-	 * 鍥炴粴
+	 * 回滚
 	 * @throws SQLException
 	 */
 	public static void rollback() throws SQLException{
 		Connection conn = tl.get();
 		if(conn == null){
-			logger.info("褰撳墠娌℃湁浜嬪姟,涓嶈兘鍥炴粴锛�");
-			throw new SQLException("褰撳墠娌℃湁浜嬪姟,涓嶈兘鍥炴粴锛�");
+			logger.info("当前没有事务,不能回滚！");
+			throw new SQLException("当前没有事务,不能回滚！");
 		}
 		conn.rollback();
 	}
 	
 	/**
-	 * 浜嬪姟澶勭悊锛屽叧闂祫婧�
+	 * 事务处理，关闭资源
 	 * @throws SQLException
 	 */
 	public static void closeConn() throws SQLException{
 		Connection conn = tl.get();
 		if(conn == null){
-			logger.info("褰撳墠娌℃湁杩炴帴锛屼笉闇�瑕佸叧闂瑿onnection銆�");
-			throw new SQLException("褰撳墠娌℃湁杩炴帴锛屼笉闇�瑕佸叧闂瑿onnection銆�");
+			logger.info("当前没有连接，不需要关闭Connection。");
+			throw new SQLException("当前没有连接，不需要关闭Connection。");
 		}
 		conn.close();
 		tl.remove();
